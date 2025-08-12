@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: opstool
+      POSTGRES_USER: opstool
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  opstool-server:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - REDIS_HOST=redis
+      - DB_HOST=postgres
+      - DB_USER=opstool
+      - DB_PASSWORD=password
+      - DB_NAME=opstool
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - /var/log:/var/log:ro  # Mount system logs
+
+  opstool-worker:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile.python
+    environment:
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # Docker access
+      - ./workspace:/workspace  # Workspace for git operations
+    deploy:
+      replicas: 3  # Scale workers
+
+volumes:
+  redis_data:
+  postgres_data:

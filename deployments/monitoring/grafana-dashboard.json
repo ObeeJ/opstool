@@ -1,0 +1,45 @@
+{
+  "dashboard": {
+    "title": "OPSTOOL Dashboard",
+    "panels": [
+      {
+        "title": "Task Execution Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(opstool_tasks_total[5m])",
+            "legendFormat": "{{type}} - {{status}}"
+          }
+        ]
+      },
+      {
+        "title": "Active Workers",
+        "type": "singlestat",
+        "targets": [
+          {
+            "expr": "opstool_active_workers"
+          }
+        ]
+      },
+      {
+        "title": "Queue Size",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "opstool_queue_size"
+          }
+        ]
+      },
+      {
+        "title": "Task Duration",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, opstool_task_duration_seconds_bucket)",
+            "legendFormat": "95th percentile"
+          }
+        ]
+      }
+    ]
+  }
+}

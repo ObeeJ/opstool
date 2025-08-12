@@ -1,0 +1,62 @@
+version: '3.8'
+
+# Development overrides
+services:
+  opstool-server:
+    volumes:
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - LOG_LEVEL=debug
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    ports:
+      - "8080:8080"
+      - "2345:2345"  # Delve debugger port
+    
+  opstool-worker:
+    volumes:
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./workspace:/workspace
+    environment:
+      - LOG_LEVEL=debug
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    
+  redis:
+    ports:
+      - "6379:6379"
+    
+  postgres:
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=opstool
+      - POSTGRES_USER=opstool
+      - POSTGRES_PASSWORD=password
+    
+  # Development tools
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+  
+  # System monitoring
+  system-monitor:
+    build:
+      context: .
+      dockerfile: deployments/docker/Dockerfile.python
+    command: python scripts/system_monitor.py
+    environment:
+      - REDIS_HOST=redis
+      - ACTION=monitor
+      - INTERVAL=30
+    depends_on:
+      - redis
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro

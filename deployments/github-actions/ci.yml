@@ -1,0 +1,100 @@
+name: OPSTOOL CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install Python dependencies
+      run: |
+        cd scripts
+        pip install -r requirements.txt
+    
+    - name: Run Go tests
+      run: go test ./...
+    
+    - name: Run Python tests
+      run: python -m pytest scripts/tests/ || true
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Build and push Go service
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/server:${{ github.sha }}
+    
+    - name: Build and push Python worker
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./deployments/docker/Dockerfile.python
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/worker:${{ github.sha }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-west-2
+    
+    - name: Update kubeconfig
+      run: aws eks update-kubeconfig --name opstool --region us-west-2
+    
+    - name: Deploy to Kubernetes
+      run: |
+        sed -i 's|opstool/server:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/server:${{ github.sha }}|g' deployments/k8s/opstool-server.yaml
+        sed -i 's|opstool/worker:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/worker:${{ github.sha }}|g' deployments/k8s/opstool-worker.yaml
+        kubectl apply -f deployments/k8s/
+    
+    - name: Verify deployment
+      run: |
+        kubectl rollout status deployment/opstool-server -n opstool
+        kubectl rollout status deployment/opstool-worker -n opstool

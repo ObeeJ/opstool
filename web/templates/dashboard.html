@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpsTool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #fafafa;
+            color: #1a1a1a;
+            line-height: 1.5;
+        }
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 240px;
+            height: 100vh;
+            background: #fff;
+            border-right: 1px solid #e5e5e5;
+            padding: 24px 0;
+        }
+        .logo {
+            padding: 0 24px 32px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .nav-item {
+            display: block;
+            padding: 12px 24px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: #f5f5f5;
+            color: #1a1a1a;
+        }
+        .main {
+            margin-left: 240px;
+            padding: 32px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .status-badge {
+            background: #10b981;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 24px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+        }
+        .metric {
+            font-size: 32px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .metric-change {
+            font-size: 12px;
+            color: #10b981;
+            margin-top: 4px;
+        }
+        .tasks-table {
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .table-header {
+            background: #f9f9f9;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e5e5e5;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .table-row {
+            display: flex;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .table-row:last-child {
+            border-bottom: none;
+        }
+        .task-name {
+            flex: 1;
+            font-weight: 500;
+        }
+        .task-type {
+            color: #666;
+            font-size: 13px;
+            margin-top: 2px;
+        }
+        .task-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-success { background: #dcfce7; color: #166534; }
+        .status-running { background: #fef3c7; color: #92400e; }
+        .status-failed { background: #fee2e2; color: #991b1b; }
+        .btn {
+            background: #1a1a1a;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            background: #333;
+        }
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #1a1a1a;
+        }
+        .btn-secondary:hover {
+            background: #e5e5e5;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">OPSTOOL</div>
+        <a href="#" class="nav-item active">Dashboard</a>
+        <a href="#" class="nav-item">Tasks</a>
+        <a href="#" class="nav-item">Deployments</a>
+        <a href="#" class="nav-item">Monitoring</a>
+        <a href="#" class="nav-item">Settings</a>
+    </div>
+
+    <div class="main">
+        <div class="header">
+            <h1>Dashboard</h1>
+            <div class="status-badge">All systems operational</div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Active Tasks</div>
+                </div>
+                <div class="metric">12</div>
+                <div class="metric-change">+2 from yesterday</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Deployments Today</div>
+                </div>
+                <div class="metric">156</div>
+                <div class="metric-change">+12% from yesterday</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Success Rate</div>
+                </div>
+                <div class="metric">98.7%</div>
+                <div class="metric-change">+0.3% from yesterday</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Response Time</div>
+                </div>
+                <div class="metric">42ms</div>
+                <div class="metric-change">-5ms from yesterday</div>
+            </div>
+        </div>
+
+        <div class="tasks-table">
+            <div class="table-header">
+                Recent Tasks
+            </div>
+            <div class="table-row">
+                <div style="flex: 1;">
+                    <div class="task-name">Deploy Production API</div>
+                    <div class="task-type">kubernetes-deploy</div>
+                </div>
+                <div class="task-status status-success">Success</div>
+            </div>
+            <div class="table-row">
+                <div style="flex: 1;">
+                    <div class="task-name">Database Backup</div>
+                    <div class="task-type">backup-automation</div>
+                </div>
+                <div class="task-status status-running">Running</div>
+            </div>
+            <div class="table-row">
+                <div style="flex: 1;">
+                    <div class="task-name">Security Scan</div>
+                    <div class="task-type">security-scanner</div>
+                </div>
+                <div class="task-status status-success">Completed</div>
+            </div>
+            <div class="table-row">
+                <div style="flex: 1;">
+                    <div class="task-name">Load Test</div>
+                    <div class="task-type">performance-test</div>
+                </div>
+                <div class="task-status status-failed">Failed</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 24px;">
+            <button class="btn" onclick="refreshTasks()">Refresh</button>
+            <button class="btn btn-secondary" onclick="createTask()">New Task</button>
+        </div>
+    </div>
+
+    <script>
+        function refreshTasks() {
+            fetch('/api/v1/tasks')
+                .then(response => response.json())
+                .then(data => console.log('Tasks refreshed:', data));
+        }
+
+        function createTask() {
+            fetch('/api/v1/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: 'New Task', type: 'manual' })
+            })
+            .then(response => response.json())
+            .then(data => console.log('Task created:', data));
+        }
+    </script>
+</body>
+</html>
