@@ -107,10 +107,13 @@ The demo script simulates real-world usage:
 # Start development environment
 make dev-run
 
-# Run tests
+# Build and test (tidy + build all + test all)
+make go-checks
+
+# Run tests only
 make test
 
-# Build application
+# Build application only
 make build
 ```
 

@@ -135,3 +135,9 @@ quick-start:
 	@echo "5. Running demo..."
 	make demo
 	@echo "✅ OPSTOOL is ready! Access dashboard at http://localhost:8080"
+
+# Python checks
+python-checks:
+	cd scripts && python -m pytest
+	cd scripts && ruff check .
+	cd scripts && flake8 .

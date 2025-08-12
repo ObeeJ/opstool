@@ -36,6 +36,21 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "500m"
+        ports:
+        - containerPort: 8081
+          name: http-health
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
       volumes:
       - name: docker-sock
         hostPath:

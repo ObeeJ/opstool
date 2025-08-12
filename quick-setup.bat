@@ -10,9 +10,9 @@ docker run -d --name opstool-postgres -e POSTGRES_DB=opstool -e POSTGRES_USER=op
 
 docker run -d --name opstool-redis -p 6379:6379 redis:7-alpine redis-server --appendonly yes
 
-echo 3. Installing Python dependencies (simplified)...
+echo 3. Installing Python dependencies...
 cd scripts
-pip install redis requests psutil
+pip install -r requirements.txt
 cd ..
 
 echo 4. Building Go application...
@@ -20,7 +20,8 @@ go build -o bin\opstool-server .\cmd\server
 
 echo 5. Creating database schema...
 timeout /t 10
-echo CREATE TABLE IF NOT EXISTS tasks (id VARCHAR(255) PRIMARY KEY, name VARCHAR(255), type VARCHAR(50), status VARCHAR(50) DEFAULT 'created'); | docker exec -i opstool-postgres psql -U opstool -d opstool
+docker cp migrations\001_initial.sql opstool-postgres:/001_initial.sql
+docker exec -i opstool-postgres psql -U opstool -d opstool -f /001_initial.sql
 
 echo 6. Starting OPSTOOL server...
 set REDIS_HOST=localhost

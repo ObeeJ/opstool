@@ -10,14 +10,19 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY scripts/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY scripts/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && pip install --no-cache-dir flask
 
 # Copy scripts
 COPY scripts/ ./scripts/
 
+# Expose health port
+EXPOSE 8081
+
 # Create non-root user
 RUN useradd -m -u 1000 worker
 USER worker
+
+ENV WORKER_HEALTH_PORT=8081
 
 CMD ["python", "scripts/worker.py"]

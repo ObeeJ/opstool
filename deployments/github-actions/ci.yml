@@ -35,7 +35,7 @@ jobs:
       run: go test ./...
     
     - name: Run Python tests
-      run: python -m pytest scripts/tests/ || true
+      run: python -m pytest scripts/tests/
 
   build:
     needs: test

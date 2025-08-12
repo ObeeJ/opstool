@@ -174,6 +174,31 @@ class TaskWorker:
         logger.warning(f"Emergency response triggered for: {alert.get('message', '')}")
         return {'status': 'completed', 'message': 'Emergency response executed'}
 
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.get('/healthz')
+def healthz():
+    return {'status': 'ok'}, 200
+
+@app.get('/readyz')
+def readyz():
+    try:
+        r = redis.Redis(host=os.getenv('REDIS_HOST', 'localhost'), port=int(os.getenv('REDIS_PORT', 6379)), password=os.getenv('REDIS_PASSWORD', ''), decode_responses=True)
+        r.ping()
+        return {'status': 'ready'}, 200
+    except Exception as e:
+        return {'status': 'not-ready', 'error': str(e)}, 500
+
 if __name__ == '__main__':
+    import threading
+
+    def start_health_server():
+        app.run(host='0.0.0.0', port=int(os.getenv('WORKER_HEALTH_PORT', 8081)))
+
+    t = threading.Thread(target=start_health_server, daemon=True)
+    t.start()
+
     worker = TaskWorker()
     worker.run()
