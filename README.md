@@ -1,4 +1,4 @@
-# 🛠️ OPSTOOL - Enterprise DevOps Automation Platform
+# 🛠️ OpsTool - Enterprise DevOps Automation Platform
 
 A production-ready, enterprise-grade DevOps automation platform combining Go's performance with Python's automation capabilities.
 
