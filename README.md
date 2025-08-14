@@ -2,6 +2,79 @@
 
 A production-ready, enterprise-grade DevOps automation platform combining Go's performance with Python's automation capabilities.
 
+## 💻 Development Environment Setup
+
+### Prerequisites
+
+- Go 1.21 or higher
+- Python 3.12 or higher
+- Docker and Docker Compose
+- Make
+- Git
+
+### Initial Setup Steps
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/ObeeJ/opstool.git
+cd opstool
+```
+
+1. Set up Python virtual environment:
+
+```bash
+cd scripts
+python -m venv venv
+source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+1. Build Go application:
+
+```bash
+make build
+```
+
+1. Set up development databases:
+
+```bash
+docker-compose up -d postgres redis
+```
+
+1. Run migrations:
+
+```bash
+make migrate
+```
+
+### Development Workflow
+
+1. Always activate the virtual environment when working with Python scripts:
+
+```bash
+cd scripts
+source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+```
+
+1. Run tests before committing:
+
+```bash
+make test
+```
+
+1. Format code:
+
+```bash
+make fmt
+```
+
+1. Check linting:
+
+```bash
+make lint
+```
+
 ## 🚀 Quick Start
 
 ### Option 1: Complete Setup (Recommended)
@@ -98,6 +171,37 @@ The demo script simulates real-world usage:
                        │   (Multi-tenant)│    │   (Message Queue) │
                        └─────────────────┘    └───────────────────┘
 ```
+
+## 📝 Development Guidelines
+
+### Git Workflow
+
+1. Create feature branches from `master`
+2. Keep commits focused and meaningful
+3. Push changes regularly
+4. Create pull requests for review
+5. Squash commits when merging
+
+### Code Style
+
+- Go: Follow standard Go formatting (gofmt)
+- Python: Follow PEP 8
+- Use meaningful variable and function names
+- Add comments for complex logic
+- Write unit tests for new features
+
+### Dependencies
+
+- Keep `requirements.txt` updated when adding Python packages
+- Use `go mod tidy` for Go dependencies
+- Document any new system requirements
+
+### Documentation
+
+- Update README.md for significant changes
+- Document API changes
+- Keep configuration examples up to date
+- Add comments for non-obvious code
 
 ## 🔧 Development
 
