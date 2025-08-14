@@ -4,9 +4,7 @@ OPSTOOL Startup Verification Script
 Ensures all components are running correctly before demo
 """
 import subprocess
-import time
 import requests
-import json
 import os
 
 class StartupChecker:

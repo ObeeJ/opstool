@@ -31,7 +31,7 @@ services:
 
   opstool-server:
     build:
-      context: ../..
+      context: .
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
@@ -45,22 +45,22 @@ services:
     depends_on:
       - redis
       - postgres
+      - jaeger
     volumes:
       - /var/log:/var/log:ro  # Mount system logs
 
   opstool-worker:
     build:
-      context: ../..
+      context: .
       dockerfile: deployments/docker/Dockerfile.python
     environment:
       - REDIS_HOST=redis
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
     depends_on:
       - redis
+      - jaeger
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock  # Docker access
-      - ./workspace:/workspace  # Workspace for git operations
-    deploy:
-      replicas: 3  # Scale workers
 
 volumes:
   redis_data:

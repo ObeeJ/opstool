@@ -15,12 +15,12 @@ const (
 )
 
 type CircuitBreaker struct {
-	maxRequests  uint32
-	interval     time.Duration
-	timeout      time.Duration
-	readyToTrip  func(counts Counts) bool
+	maxRequests   uint32
+	interval      time.Duration
+	timeout       time.Duration
+	readyToTrip   func(counts Counts) bool
 	onStateChange func(name string, from State, to State)
-	
+
 	mutex      sync.Mutex
 	state      State
 	generation uint64
@@ -52,14 +52,14 @@ func (cb *CircuitBreaker) Execute(req func() (interface{}, error)) (interface{},
 	if err != nil {
 		return nil, err
 	}
-	
+
 	defer func() {
 		if r := recover(); r != nil {
 			cb.afterRequest(generation, false)
 			panic(r)
 		}
 	}()
-	
+
 	result, err := req()
 	cb.afterRequest(generation, err == nil)
 	return result, err
@@ -68,16 +68,16 @@ func (cb *CircuitBreaker) Execute(req func() (interface{}, error)) (interface{},
 func (cb *CircuitBreaker) beforeRequest() (uint64, error) {
 	cb.mutex.Lock()
 	defer cb.mutex.Unlock()
-	
+
 	now := time.Now()
 	state, generation := cb.currentState(now)
-	
+
 	if state == StateOpen {
 		return generation, errors.New("circuit breaker is open")
 	} else if state == StateHalfOpen && cb.counts.Requests >= cb.maxRequests {
 		return generation, errors.New("too many requests")
 	}
-	
+
 	cb.counts.Requests++
 	return generation, nil
 }
@@ -85,35 +85,35 @@ func (cb *CircuitBreaker) beforeRequest() (uint64, error) {
 func (cb *CircuitBreaker) afterRequest(before uint64, success bool) {
 	cb.mutex.Lock()
 	defer cb.mutex.Unlock()
-	
+
 	now := time.Now()
-	state, generation := cb.currentState(now)
+	_, generation := cb.currentState(now)
 	if generation != before {
 		return
 	}
-	
+
 	if success {
-		cb.onSuccess(state)
+		cb.onSuccess()
 	} else {
-		cb.onFailure(state)
+		cb.onFailure()
 	}
 }
 
-func (cb *CircuitBreaker) onSuccess(state State) {
+func (cb *CircuitBreaker) onSuccess() {
 	cb.counts.TotalSuccesses++
 	cb.counts.ConsecutiveSuccesses++
 	cb.counts.ConsecutiveFailures = 0
-	
-	if state == StateHalfOpen {
+
+	if cb.state == StateHalfOpen {
 		cb.setState(StateClosed)
 	}
 }
 
-func (cb *CircuitBreaker) onFailure(state State) {
+func (cb *CircuitBreaker) onFailure() {
 	cb.counts.TotalFailures++
 	cb.counts.ConsecutiveFailures++
 	cb.counts.ConsecutiveSuccesses = 0
-	
+
 	if cb.readyToTrip(cb.counts) {
 		cb.setState(StateOpen)
 	}
@@ -137,11 +137,11 @@ func (cb *CircuitBreaker) setState(state State) {
 	if cb.state == state {
 		return
 	}
-	
+
 	prev := cb.state
 	cb.state = state
 	cb.toNewGeneration(time.Now())
-	
+
 	if cb.onStateChange != nil {
 		cb.onStateChange("circuit-breaker", prev, state)
 	}
@@ -150,7 +150,7 @@ func (cb *CircuitBreaker) setState(state State) {
 func (cb *CircuitBreaker) toNewGeneration(now time.Time) {
 	cb.generation++
 	cb.counts = Counts{}
-	
+
 	var zero time.Time
 	switch cb.state {
 	case StateClosed:

@@ -112,7 +112,7 @@ class SecurityScanner:
                 "status": "ssl_error",
                 "recommendation": "Fix SSL configuration"
             }
-        except:
+        except Exception:
             return {
                 "status": "no_ssl",
                 "recommendation": "Enable HTTPS"

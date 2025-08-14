@@ -22,7 +22,7 @@ Write-Host "Stopping previous container if exists..."
 docker rm -f worker 2>$null | Out-Null
 
 Write-Host "Running worker container on port $HealthPort with REDIS_HOST=$RedisHost"
-docker run -d -p "$HealthPort:$HealthPort" --name worker -e WORKER_HEALTH_PORT=$HealthPort -e REDIS_HOST=$RedisHost $ImageTag | Out-Null
+docker run -d -p "${HealthPort}:${HealthPort}" --name worker -e WORKER_HEALTH_PORT=$HealthPort -e REDIS_HOST=$RedisHost $ImageTag | Out-Null
 
 Start-Sleep -Seconds 3
 

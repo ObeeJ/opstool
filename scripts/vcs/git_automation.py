@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 import json
-import subprocess
+
 from git import Repo, GitCommandError
 from typing import Dict, List, Any
 
@@ -46,7 +46,7 @@ class GitAutomation:
                 commit = self.repo.index.commit(message)
                 return {
                     "status": "success",
-                    "message": f"Changes committed successfully",
+                    "message": "Changes committed successfully",
                     "commit_hash": commit.hexsha
                 }
             else:
@@ -138,9 +138,9 @@ class GitAutomation:
         """Create a git tag"""
         try:
             if message:
-                tag = self.repo.create_tag(tag_name, message=message)
+                self.repo.create_tag(tag_name, message=message)
             else:
-                tag = self.repo.create_tag(tag_name)
+                self.repo.create_tag(tag_name)
             
             return {
                 "status": "success",

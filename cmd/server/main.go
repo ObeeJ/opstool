@@ -12,6 +12,7 @@ import (
 	"opstool/pkg/middleware"
 	"opstool/pkg/monitor"
 	"opstool/pkg/scheduler"
+	"opstool/pkg/tracing"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -21,6 +22,13 @@ import (
 
 func main() {
 	cfg := config.Load()
+
+	// Initialize tracing
+	shutdown, err := tracing.InitTracer()
+	if err != nil {
+		log.Fatalf("Failed to initialize tracer: %v", err)
+	}
+	defer shutdown()
 
 	// Initialize Redis
 	rdb := redis.NewClient(&redis.Options{
@@ -45,21 +53,20 @@ func main() {
 	}
 	defer sqlDB.Close()
 
+	// Create traced database wrapper
+	tracedDB := database.NewTracedDB(sqlDB)
+
 	// Apply database schema
 	if err := db.InitSchema(); err != nil {
 		log.Printf("Schema initialization failed: %v", err)
 	}
 
-	// Initialize components
+	// Initialize components with traced DB
 	sched := scheduler.New(rdb)
 	mon := monitor.New(rdb)
-	sqlDBForTools, err := db.DB.DB()
-	if err != nil {
-		log.Fatalf("Failed to get underlying sql.DB for tools: %v", err)
-	}
-	auditor := audit.NewAuditLogger(sqlDBForTools)
-	healthChecker := health.NewHealthChecker(sqlDBForTools, rdb)
-	
+	auditor := audit.NewAuditLogger(tracedDB.UnderlyingDB())
+	healthChecker := health.NewHealthChecker(tracedDB.UnderlyingDB(), rdb)
+
 	// Rate limiter
 	rateLimiter := middleware.NewRateLimiter(100, 200)
 
@@ -69,15 +76,21 @@ func main() {
 
 	// Setup routes
 	r := gin.Default()
-	
+
 	// Middleware
 	r.Use(rateLimiter.Middleware())
-	
+	r.Use(func(c *gin.Context) {
+		middleware.TracingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			c.Request = r
+			c.Next()
+		})).ServeHTTP(c.Writer, c.Request)
+	})
+
 	// Health endpoints
 	r.GET("/health", healthChecker.HealthHandler())
 	r.GET("/ready", healthChecker.ReadinessHandler())
 	r.GET("/live", healthChecker.LivenessHandler())
-	
+
 	// Metrics endpoint
 	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
@@ -104,13 +117,13 @@ func main() {
 	_ = auditor
 
 	log.Printf("OPSTOOL server starting on %s:%s", cfg.Server.Host, cfg.Server.Port)
-	
+
 	srv := &http.Server{
 		Addr:         cfg.Server.Host + ":" + cfg.Server.Port,
 		Handler:      r,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 	}
-	
+
 	log.Fatal(srv.ListenAndServe())
 }
