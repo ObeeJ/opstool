@@ -101,7 +101,7 @@ class SecurityScanner:
     def check_ssl_config(self) -> Dict[str, Any]:
         """Check SSL/TLS configuration"""
         try:
-            response = requests.get('https://localhost:8080', verify=False, timeout=5)
+            response = requests.get('https://localhost:5044', verify=False, timeout=5)
             return {
                 "status": "ssl_enabled",
                 "certificate_valid": False,  # Since we used verify=False

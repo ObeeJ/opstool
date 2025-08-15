@@ -11,7 +11,7 @@ import random
 from datetime import datetime
 
 class OpstoolDemo:
-    def __init__(self, base_url="http://localhost:8080"):
+    def __init__(self, base_url="http://localhost:5044"):
         self.base_url = base_url
         self.session = requests.Session()
         self.results = []

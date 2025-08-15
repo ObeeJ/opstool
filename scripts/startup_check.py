@@ -10,7 +10,7 @@ import os
 class StartupChecker:
     def __init__(self):
         self.checks = []
-        self.base_url = "http://localhost:8080"
+        self.base_url = "http://localhost:5044"
     
     def run_all_checks(self):
         """Run all startup verification checks"""
