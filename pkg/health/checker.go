@@ -24,9 +24,9 @@ type HealthStatus struct {
 }
 
 type Status struct {
-	Status      string        `json:"status"`
+	Status       string        `json:"status"`
 	ResponseTime time.Duration `json:"response_time"`
-	Error       string        `json:"error,omitempty"`
+	Error        string        `json:"error,omitempty"`
 }
 
 var startTime = time.Now()
@@ -38,37 +38,51 @@ func NewHealthChecker(db *sql.DB, redis *redis.Client) *HealthChecker {
 func (h *HealthChecker) CheckHealth() HealthStatus {
 	ctx := context.Background()
 	services := make(map[string]Status)
-	
-	// Check database
-	dbStart := time.Now()
-	if err := h.db.PingContext(ctx); err != nil {
-		services["database"] = Status{
-			Status:       "unhealthy",
-			ResponseTime: time.Since(dbStart),
-			Error:        err.Error(),
+
+	// Check database if available
+	if h.db != nil {
+		dbStart := time.Now()
+		if err := h.db.PingContext(ctx); err != nil {
+			services["database"] = Status{
+				Status:       "unhealthy",
+				ResponseTime: time.Since(dbStart),
+				Error:        err.Error(),
+			}
+		} else {
+			services["database"] = Status{
+				Status:       "healthy",
+				ResponseTime: time.Since(dbStart),
+			}
 		}
 	} else {
 		services["database"] = Status{
-			Status:       "healthy",
-			ResponseTime: time.Since(dbStart),
+			Status:       "not configured",
+			ResponseTime: 0,
 		}
 	}
-	
-	// Check Redis
-	redisStart := time.Now()
-	if err := h.redis.Ping(ctx).Err(); err != nil {
-		services["redis"] = Status{
-			Status:       "unhealthy",
-			ResponseTime: time.Since(redisStart),
-			Error:        err.Error(),
+
+	// Check Redis if available
+	if h.redis != nil {
+		redisStart := time.Now()
+		if err := h.redis.Ping(ctx).Err(); err != nil {
+			services["redis"] = Status{
+				Status:       "unhealthy",
+				ResponseTime: time.Since(redisStart),
+				Error:        err.Error(),
+			}
+		} else {
+			services["redis"] = Status{
+				Status:       "healthy",
+				ResponseTime: time.Since(redisStart),
+			}
 		}
 	} else {
 		services["redis"] = Status{
-			Status:       "healthy",
-			ResponseTime: time.Since(redisStart),
+			Status:       "not configured",
+			ResponseTime: 0,
 		}
 	}
-	
+
 	// Overall status
 	overallStatus := "healthy"
 	for _, service := range services {
@@ -77,7 +91,7 @@ func (h *HealthChecker) CheckHealth() HealthStatus {
 			break
 		}
 	}
-	
+
 	return HealthStatus{
 		Status:    overallStatus,
 		Timestamp: time.Now(),
@@ -90,12 +104,12 @@ func (h *HealthChecker) CheckHealth() HealthStatus {
 func (h *HealthChecker) HealthHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		health := h.CheckHealth()
-		
+
 		statusCode := http.StatusOK
 		if health.Status == "unhealthy" {
 			statusCode = http.StatusServiceUnavailable
 		}
-		
+
 		c.JSON(statusCode, health)
 	}
 }
@@ -103,25 +117,31 @@ func (h *HealthChecker) HealthHandler() gin.HandlerFunc {
 func (h *HealthChecker) ReadinessHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
-		
-		if err := h.db.PingContext(ctx); err != nil {
-			c.JSON(http.StatusServiceUnavailable, gin.H{
-				"status": "not ready",
-				"reason": "database unavailable",
-			})
-			return
+
+		// Check database if available
+		if h.db != nil {
+			if err := h.db.PingContext(ctx); err != nil {
+				c.JSON(http.StatusServiceUnavailable, gin.H{
+					"status": "not ready",
+					"reason": "database unavailable",
+				})
+				return
+			}
 		}
-		
-		if err := h.redis.Ping(ctx).Err(); err != nil {
-			c.JSON(http.StatusServiceUnavailable, gin.H{
-				"status": "not ready",
-				"reason": "redis unavailable",
-			})
-			return
+
+		// Check Redis if available
+		if h.redis != nil {
+			if err := h.redis.Ping(ctx).Err(); err != nil {
+				c.JSON(http.StatusServiceUnavailable, gin.H{
+					"status": "not ready",
+					"reason": "redis unavailable",
+				})
+				return
+			}
 		}
-		
+
 		c.JSON(http.StatusOK, gin.H{
-			"status": "ready",
+			"status":    "ready",
 			"timestamp": time.Now(),
 		})
 	}
@@ -130,9 +150,9 @@ func (h *HealthChecker) ReadinessHandler() gin.HandlerFunc {
 func (h *HealthChecker) LivenessHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"status": "alive",
+			"status":    "alive",
 			"timestamp": time.Now(),
-			"uptime": time.Since(startTime).String(),
+			"uptime":    time.Since(startTime).String(),
 		})
 	}
 }
