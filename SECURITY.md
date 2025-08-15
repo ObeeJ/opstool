@@ -14,24 +14,28 @@ We actively support and provide security updates for the following versions of O
 OpsTool implements multiple layers of security controls:
 
 ### Authentication & Authorization
+
 - JWT-based authentication with configurable expiration
 - Role-based access control (RBAC)
 - Multi-tenant isolation
 - API key authentication for service-to-service communication
 
 ### Data Protection
+
 - Encryption at rest using AES-256
 - Encryption in transit with TLS 1.3
 - GDPR compliance features for data handling
 - Audit logging for all sensitive operations
 
 ### Infrastructure Security
+
 - Container security scanning with Trivy
 - Kubernetes security policies and network policies
 - Secret management with external secret stores
 - Regular dependency vulnerability scanning
 
 ### Monitoring & Detection
+
 - Real-time security event monitoring
 - Anomaly detection for unusual access patterns
 - Comprehensive audit trails
@@ -47,9 +51,10 @@ Please do not report security vulnerabilities through public GitHub issues, disc
 
 ### 2. Send a Private Report
 
-Email security vulnerabilities to: **security@opstool.io**
+Email security vulnerabilities to: **<security@opstool.io>**
 
 Include the following information:
+
 - Description of the vulnerability
 - Steps to reproduce the issue
 - Potential impact assessment
@@ -60,7 +65,7 @@ Include the following information:
 
 Please use this template for vulnerability reports:
 
-```
+```text
 Subject: [SECURITY] Brief description of vulnerability
 
 ## Vulnerability Details
@@ -210,15 +215,15 @@ OpsTool is designed to support compliance with:
 
 ## Security Contacts
 
-- **Security Team**: security@opstool.io
-- **General Contact**: support@opstool.io
+- **Security Team**: <security@opstool.io>
+- **General Contact**: <support@opstool.io>
 - **Emergency Contact**: +1-XXX-XXX-XXXX (24/7)
 
 ## GPG Keys
 
 For sensitive communications, you can use our GPG key:
 
-```
+```text
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 [GPG Public Key would be here]
 -----END PGP PUBLIC KEY BLOCK-----
@@ -229,7 +234,7 @@ For sensitive communications, you can use our GPG key:
 Security updates are distributed through:
 
 - GitHub Security Advisories
-- Security mailing list: security-announce@opstool.io
+- Security mailing list: <security-announce@opstool.io>
 - Release notes with security fixes highlighted
 - Container image updates with security patches
 

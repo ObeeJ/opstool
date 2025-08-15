@@ -21,12 +21,14 @@ By participating in this project, you agree to abide by our [Code of Conduct](CO
 
 1. Fork the repository
 2. Clone your fork:
+
    ```bash
    git clone https://github.com/YOUR_USERNAME/opstool.git
    cd opstool
    ```
 
 3. Set up your development environment:
+
    ```bash
    # Install Go dependencies
    go mod download
@@ -46,6 +48,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](CO
    ```
 
 4. Run tests to ensure everything is working:
+
    ```bash
    go test ./...
    cd scripts && python -m pytest
@@ -64,6 +67,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](CO
 ### Making Changes
 
 1. Create a feature branch:
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
@@ -76,6 +80,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](CO
 ### Testing
 
 #### Go Backend Tests
+
 ```bash
 # Run all tests
 go test ./...
@@ -89,6 +94,7 @@ go test ./pkg/auth
 ```
 
 #### Python Worker Tests
+
 ```bash
 cd scripts
 python -m pytest
@@ -96,6 +102,7 @@ python -m pytest tests/test_worker.py -v
 ```
 
 #### Frontend Tests
+
 ```bash
 cd frontend
 npm test
@@ -111,6 +118,7 @@ We use automated tools to maintain code quality:
 - **JavaScript/TypeScript**: `eslint` and `prettier`
 
 Run before committing:
+
 ```bash
 # Go
 golangci-lint run
@@ -137,6 +145,7 @@ npm run lint
 - Handle errors explicitly
 
 Example:
+
 ```go
 // ValidateJWT validates a JWT token and returns claims
 func ValidateJWT(tokenString string) (*Claims, error) {
@@ -157,6 +166,7 @@ func ValidateJWT(tokenString string) (*Claims, error) {
 - Keep functions under 50 lines when possible
 
 Example:
+
 ```python
 def process_alert(alert_data: Dict[str, Any]) -> AlertResult:
     """Process an incoming alert and determine appropriate action.
@@ -185,7 +195,7 @@ def process_alert(alert_data: Dict[str, Any]) -> AlertResult:
 
 Use conventional commits format:
 
-```
+```text
 <type>[optional scope]: <description>
 
 [optional body]
@@ -194,6 +204,7 @@ Use conventional commits format:
 ```
 
 Types:
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -203,7 +214,8 @@ Types:
 - `chore`: Maintenance tasks
 
 Examples:
-```
+
+```text
 feat(auth): add JWT token refresh functionality
 
 fix(database): resolve connection pool exhaustion
@@ -216,6 +228,7 @@ test(health): add health check endpoint tests
 ## Pull Request Process
 
 1. Ensure your branch is up to date with `develop`:
+
    ```bash
    git checkout develop
    git pull origin develop
