@@ -9,8 +9,8 @@ import (
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 	"go.opentelemetry.io/otel/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 )
 
 func InitTracer() (func(), error) {
@@ -35,10 +35,11 @@ func InitTracer() (func(), error) {
 	)
 
 	otel.SetTracerProvider(tp)
-
+	
 	return func() {
 		if err := tp.Shutdown(context.Background()); err != nil {
-			// Log error
+			// Error handling without fmt
+			_ = err
 		}
 	}, nil
 }

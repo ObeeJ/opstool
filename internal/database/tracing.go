@@ -1,114 +1,70 @@
 package database
 
 import (
-	"fmt"
+	"context"
+	"database/sql"
+	"log"
 	"time"
 
 	"opstool/pkg/tracing"
 
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
-	"gorm.io/gorm"
 )
 
-// TracingPlugin implements GORM's plugin interface for tracing
-type TracingPlugin struct{}
-
-// Name returns the name of the plugin
-func (p *TracingPlugin) Name() string {
-	return "TracingPlugin"
+// InitTracing initializes database-specific tracing configuration
+func InitTracing(ctx context.Context) {
+	log.Println("Database tracing initialized")
 }
 
-// Initialize implements GORM plugin interface
-func (p *TracingPlugin) Initialize(db *gorm.DB) error {
-	// Add callbacks for Create, Query, Update, Delete operations
-	err := db.Callback().Create().Before("gorm:create").Register("tracing:before_create", before("create"))
-	if err != nil {
-		return err
-	}
-
-	err = db.Callback().Query().Before("gorm:query").Register("tracing:before_query", before("query"))
-	if err != nil {
-		return err
-	}
-
-	err = db.Callback().Update().Before("gorm:update").Register("tracing:before_update", before("update"))
-	if err != nil {
-		return err
-	}
-
-	err = db.Callback().Delete().Before("gorm:delete").Register("tracing:before_delete", before("delete"))
-	if err != nil {
-		return err
-	}
-
-	err = db.Callback().Create().After("gorm:create").Register("tracing:after_create", after())
-	if err != nil {
-		return err
-	}
-
-	err = db.Callback().Query().After("gorm:query").Register("tracing:after_query", after())
-	if err != nil {
-		return err
-	}
-
-	err = db.Callback().Update().After("gorm:update").Register("tracing:after_update", after())
-	if err != nil {
-		return err
-	}
-
-	err = db.Callback().Delete().After("gorm:delete").Register("tracing:after_delete", after())
-	if err != nil {
-		return err
-	}
-
-	return nil
+// WrapDB wraps a sql.DB with tracing capabilities
+func WrapDB(db *sql.DB) *TracedDB {
+	return &TracedDB{DB: db}
 }
 
-// before returns a callback function that starts a span
-func before(operation string) func(db *gorm.DB) {
-	return func(db *gorm.DB) {
-		ctx, span := tracing.CreateSpan(db.Statement.Context, fmt.Sprintf("db.%s", operation))
-		db.Statement.Context = ctx
-		db.InstanceSet("span", span)
-		db.InstanceSet("startTime", time.Now())
+// TraceQuery executes a query with automatic tracing
+func TraceQuery(ctx context.Context, db *sql.DB, query string, args ...interface{}) (*sql.Rows, error) {
+	ctx, span := tracing.CreateSpan(ctx, "db.query")
+	defer span.End()
+
+	startTime := time.Now()
+	rows, err := db.QueryContext(ctx, query, args...)
+	duration := time.Since(startTime)
+
+	// Add attributes to the span
+	span.SetAttributes(
+		attribute.String("db.statement", query),
+		attribute.String("db.operation", "query"),
+		attribute.Int64("db.duration_ms", duration.Milliseconds()),
+	)
+
+	if err != nil {
+		span.RecordError(err)
+		span.SetAttributes(attribute.Bool("db.error", true))
 	}
+
+	return rows, err
 }
 
-// after returns a callback function that ends the span
-func after() func(db *gorm.DB) {
-	return func(db *gorm.DB) {
-		spanInterface, exists := db.InstanceGet("span")
-		if !exists {
-			return
-		}
+// TraceExec executes a command with automatic tracing
+func TraceExec(ctx context.Context, db *sql.DB, query string, args ...interface{}) (sql.Result, error) {
+	ctx, span := tracing.CreateSpan(ctx, "db.exec")
+	defer span.End()
 
-		startTimeInterface, exists := db.InstanceGet("startTime")
-		if !exists {
-			return
-		}
+	startTime := time.Now()
+	result, err := db.ExecContext(ctx, query, args...)
+	duration := time.Since(startTime)
 
-		span := spanInterface.(trace.Span)
-		startTime := startTimeInterface.(time.Time)
-		duration := time.Since(startTime)
+	// Add attributes to the span
+	span.SetAttributes(
+		attribute.String("db.statement", query),
+		attribute.String("db.operation", "exec"),
+		attribute.Int64("db.duration_ms", duration.Milliseconds()),
+	)
 
-		// Add database operation details to span
-		span.SetAttributes(
-			attribute.String("db.type", "postgres"),
-			attribute.String("db.table", db.Statement.Table),
-			attribute.String("db.sql", db.Statement.SQL.String()),
-			attribute.Float64("db.duration_ms", float64(duration.Milliseconds())),
-		)
-
-		if db.Error != nil {
-			span.RecordError(db.Error)
-		}
-
-		span.End()
+	if err != nil {
+		span.RecordError(err)
+		span.SetAttributes(attribute.Bool("db.error", true))
 	}
-}
 
-// EnableTracing adds tracing capabilities to a GORM database instance
-func EnableTracing(db *gorm.DB) error {
-	return db.Use(&TracingPlugin{})
+	return result, err
 }

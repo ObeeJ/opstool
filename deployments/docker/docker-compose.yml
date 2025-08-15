@@ -34,8 +34,9 @@ services:
       context: ../..
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "5044:5044"
     environment:
+      - PORT=5044
       - REDIS_HOST=redis
       - DB_HOST=postgres
       - DB_USER=opstool

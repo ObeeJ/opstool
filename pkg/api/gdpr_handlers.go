@@ -3,8 +3,8 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"opstool/pkg/gdpr"
 	"time"
+	"opstool/pkg/gdpr"
 )
 
 type GDPRHandler struct {
@@ -33,7 +33,7 @@ func (h *GDPRHandler) HandleDataDeletion(w http.ResponseWriter, r *http.Request)
 
 	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(map[string]string{
-		"status":  "deletion_requested",
+		"status": "deletion_requested",
 		"user_id": userID,
 	})
 }
@@ -77,9 +77,9 @@ func (h *GDPRHandler) HandleConsentUpdate(w http.ResponseWriter, r *http.Request
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status":    "consent_updated",
-		"user_id":   req.UserID,
-		"consent":   req.Consent,
+		"status": "consent_updated",
+		"user_id": req.UserID,
+		"consent": req.Consent,
 		"timestamp": time.Now(),
 	})
 }

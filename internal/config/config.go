@@ -39,7 +39,7 @@ type PythonConfig struct {
 func Load() *Config {
 	return &Config{
 		Server: ServerConfig{
-			Port: getEnv("PORT", "8080"),
+			Port: getEnv("PORT", "5044"),
 			Host: getEnv("HOST", "0.0.0.0"),
 		},
 		Database: DatabaseConfig{

@@ -64,12 +64,11 @@ func (g *GDPRManager) UpdateConsent(userID string, consent bool) error {
 
 // CheckRetention checks if data should be retained or deleted
 func (g *GDPRManager) CheckRetention(data PersonalData) bool {
-	policy, exists := g.retentionPolicies[data.DataType]
+	_, exists := g.retentionPolicies[data.DataType]
 	if !exists {
 		return false
 	}
-	expiryTime := data.ConsentDate.Add(policy.RetentionPeriod)
-	return time.Now().Before(expiryTime)
+	return time.Now().Before(data.RetentionPeriod)
 }
 
 // SerializeForExport prepares data for export in a GDPR-compliant format

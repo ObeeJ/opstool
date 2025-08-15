@@ -45,7 +45,7 @@ func TestMetricsEndpoint(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w.Code)
 	}
-	if contentType := w.Header().Get("Content-Type"); contentType == "" || contentType[0:9] != "text/plain" {
+	if contentType := w.Header().Get("Content-Type"); contentType == "" || !strings.HasPrefix(contentType, "text/plain") {
 		t.Errorf("Expected Content-Type text/plain, got %s", contentType)
 	}
 }
